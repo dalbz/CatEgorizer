@@ -3,6 +3,7 @@
 # Eclipse #
 *.stackdump
 .settings/*
+*.project
 
 # Package Files #
 *.jar
