@@ -11,3 +11,4 @@
 *.ear
 .settings
 /*.stackdump
+/bin
