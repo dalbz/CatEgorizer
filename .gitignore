@@ -1,5 +1,9 @@
 *.class
 
+# Eclipse #
+*.stackdump
+.settings/*
+
 # Package Files #
 *.jar
 *.war
