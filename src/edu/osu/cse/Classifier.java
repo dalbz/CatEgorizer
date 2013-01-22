@@ -6,7 +6,11 @@ public class Classifier {
      * @param args
      */
     public static void main(String[] args) {
-        // TODO Auto-generated method stub
+
+        CatImage testCatImage = new CatImage(
+                "data/images/cats/00000001_000.jpg");
+
+        System.out.println("Completed");
 
     }
 

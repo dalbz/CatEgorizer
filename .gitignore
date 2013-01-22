@@ -12,3 +12,6 @@
 .settings
 /*.stackdump
 /bin
+/bin/edu/osu/cse/*.class
+data
+lib
