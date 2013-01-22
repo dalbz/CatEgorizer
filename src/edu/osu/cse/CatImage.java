@@ -10,9 +10,13 @@ import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
+import com.mortennobel.imagescaling.ResampleOp;
+
 public class CatImage {
 
     BufferedImage mImage;
+
+    String mFilename = "";
 
     HashMap<Feature, BufferedImage> mSubImages = new HashMap<CatImage.Feature, BufferedImage>();
 
@@ -22,12 +26,14 @@ public class CatImage {
         L_EAR, R_EAR, L_EYE, R_EYE, NOSE
     }
 
-    public CatImage(String filepath) {
+    public CatImage(String folderpath, File imageFile) {
+
+        mFilename = imageFile.getName();
 
         // load the image
 
         try {
-            mImage = ImageIO.read(new File(filepath));
+            mImage = ImageIO.read(imageFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -44,7 +50,7 @@ public class CatImage {
         // 8 - Right ear-2
         // 9 - Right ear-3
 
-        File coordinateFile = new File(filepath + ".cat");
+        File coordinateFile = new File(folderpath + mFilename + ".cat");
 
         try {
             BufferedReader reader = new BufferedReader(new FileReader(
@@ -97,9 +103,23 @@ public class CatImage {
 
         mSubImages.put(Feature.NOSE, nose);
 
-
         // eyes
 
+        leftX = mCoordinates[0] - imgWidth / 2;
+        topY = mCoordinates[1] - imgWidth / 2;
+
+        BufferedImage l_eye = mImage.getSubimage(leftX, topY, imgWidth,
+                imgWidth);
+
+        mSubImages.put(Feature.L_EYE, l_eye);
+
+        leftX = mCoordinates[2] - imgWidth / 2;
+        topY = mCoordinates[3] - imgWidth / 2;
+
+        BufferedImage r_eye = mImage.getSubimage(leftX, topY, imgWidth,
+                imgWidth);
+
+        mSubImages.put(Feature.R_EYE, r_eye);
 
         // ears
     }
@@ -108,31 +128,67 @@ public class CatImage {
         return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
     }
 
-    public void save(String dataFolder, String fileName) {
+    public void save(String dataFolder) {
+        for (Feature feature : mSubImages.keySet()) {
+            saveSubImage(dataFolder, feature);
+        }
+
+    }
+
+    private void saveSubImage(String dataFolder, Feature feature) {
+
+        String featureFolder = "";
+        switch (feature) {
+        case NOSE:
+            featureFolder = "noses";
+                break;
+        case L_EYE:
+            featureFolder = "eyes_left";
+                break;
+        case R_EYE:
+            featureFolder = "eyes_right";
+                break;
+        case L_EAR:
+            featureFolder = "ears_left";
+            break;
+        case R_EAR:
+            featureFolder = "ears_right";
+            break;
+        }
+
+        BufferedImage rawImage = mSubImages.get(feature);
+        File outputfile = new File(dataFolder + "/" + featureFolder + "/raw/"
+                + mFilename);
         try {
-
-            // save raw image
-
-            BufferedImage nose = mSubImages.get(Feature.NOSE);
-            File outputfile = new File(dataFolder + "/noses/raw/" + fileName);
-            ImageIO.write(nose, "png", outputfile);
-
-            // save processed image
-
-            CannyEdgeDetector detector = new CannyEdgeDetector();
-            detector.setLowThreshold(0.5f);
-            detector.setHighThreshold(1f);
-            // apply it to an image
-            detector.setSourceImage(nose);
-            detector.process();
-            BufferedImage edges = detector.getEdgesImage();
-            outputfile = new File(dataFolder + "/noses/processed/"
-                    + fileName);
-            ImageIO.write(edges, "png", outputfile);
-
+            ImageIO.write(rawImage, "png", outputfile);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        outputfile = new File(dataFolder + "/" + featureFolder + "/processed/"
+                + mFilename);
+        try {
+            ImageIO.write(processImage(rawImage), "png", outputfile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static BufferedImage processImage(BufferedImage rawImage) {
+
+        CannyEdgeDetector detector = new CannyEdgeDetector();
+        detector.setLowThreshold(0.2f);
+        detector.setHighThreshold(1f);
+
+        ResampleOp resampleOp = new ResampleOp(32, 32);
+        BufferedImage rescaledImage = resampleOp.filter(rawImage, null);
+
+        detector.setSourceImage(rescaledImage);
+        detector.process();
+
+        BufferedImage edges = detector.getEdgesImage();
+        return edges;
     }
 
 

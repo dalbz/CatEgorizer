@@ -7,14 +7,7 @@ public class Classifier {
      */
     public static void main(String[] args) {
 
-        CatImage testCatImage = new CatImage(
-                "data/images/cats/00000001_000.jpg");
-
-        testCatImage.save("data/images", "00000001_000.png");
-
-        testCatImage = new CatImage("data/images/cats/00000001_005.jpg");
-
-        testCatImage.save("data/images", "00000001_005.png");
+        ImageProcessor.processImages();
 
         System.out.println("Completed");
 
